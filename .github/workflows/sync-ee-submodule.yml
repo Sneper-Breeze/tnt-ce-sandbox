@@ -36,6 +36,10 @@ jobs:
         working-directory: ee
         shell: bash
         run: |
+          test -d tarantool || {
+            echo 'The EE target branch has no tarantool submodule yet; skipping synchronization.'
+            exit 0
+          }
           git -C tarantool fetch --depth=1 origin "$CE_SHA"
           git -C tarantool checkout "$CE_SHA"
           git add tarantool
