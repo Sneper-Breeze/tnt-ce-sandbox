@@ -18,7 +18,28 @@ jobs:
       PR_TITLE_PREFIX: ${{ github.ref_name != 'main' && format('[{0}] ', github.ref_name) || '' }}
       PR_TITLE: 'tarantool: bump to new version'
     steps:
+      - id: existing_pr
+        name: Detect existing bot pull request
+        env:
+          GH_TOKEN: ${{ secrets.EE_UPDATE_SUBMODULE_TOKEN }}
+          EE_FEATURE_BRANCH: TarantoolBot/update-tarantool-${{ github.ref_name }}
+        run: |
+          number=$(gh api "repos/Sneper-Breeze/tnt-backport/pulls?state=open&base=${GITHUB_REF_NAME}" \
+            --jq '.[] | select(.head.ref == "'"${EE_FEATURE_BRANCH}"'") | .number' | head -n1)
+          echo "number=${number:-}" >> "$GITHUB_OUTPUT"
+      - name: Reuse existing bot pull request
+        if: steps.existing_pr.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ secrets.EE_UPDATE_SUBMODULE_TOKEN }}
+          EXISTING_PR: ${{ steps.existing_pr.outputs.number }}
+        run: |
+          echo "Bot pull request #${EXISTING_PR} already exists for ${GITHUB_REF_NAME}; skipping submodule update."
+          gh api --method PATCH "repos/Sneper-Breeze/tnt-backport/issues/${EXISTING_PR}" \
+            -f body="Automatic tarantool submodule update from the matching CE branch.
+
+<sub>Last CE push observed: ${GITHUB_SHA}</sub>" >/dev/null
       - name: Update tarantool in tnt-backport@${{ github.ref_name }}
+        if: steps.existing_pr.outputs.number == ''
         uses: tarantool/actions/update-submodule@master
         with:
           repository: Sneper-Breeze/tnt-backport
