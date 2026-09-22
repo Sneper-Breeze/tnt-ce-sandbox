@@ -34,10 +34,8 @@ jobs:
           EXISTING_PR: ${{ steps.existing_pr.outputs.number }}
         run: |
           echo "Bot pull request #${EXISTING_PR} already exists for ${GITHUB_REF_NAME}; skipping submodule update."
-          gh api --method PATCH "repos/Sneper-Breeze/tnt-backport/issues/${EXISTING_PR}" \
-            -f body="Automatic tarantool submodule update from the matching CE branch.
-
-<sub>Last CE push observed: ${GITHUB_SHA}</sub>" >/dev/null
+          body="Automatic tarantool submodule update from the matching CE branch. Last CE push observed: ${GITHUB_SHA}"
+          gh api --method PATCH "repos/Sneper-Breeze/tnt-backport/issues/${EXISTING_PR}" -f "body=${body}" >/dev/null
       - name: Update tarantool in tnt-backport@${{ github.ref_name }}
         if: steps.existing_pr.outputs.number == ''
         uses: tarantool/actions/update-submodule@master
