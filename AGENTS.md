@@ -8,8 +8,8 @@ is the sibling `../backport` repository, published as
 
 - Supported branches are `main`, `release/3.3`, and `release/3.2`.
 - CE `backport.yml` creates ordinary CE backport PRs for `backport/<x.y>`.
-- CE must not create PRs in EE. EE's `resolve-ce-dependency.yml` owns all
-  cross-repository orchestration.
+- CE `submodule_update.yml` owns automatic EE gitlink bumps on
+  `TarantoolBot/update-tarantool-<target>`. EE's resolver only discovers them.
 - The EE resolver may create CE branches named
   `ee-dependency/release/<x.y>/pr-<EE-PR>` and target CE `release/<x.y>`.
 
@@ -25,7 +25,8 @@ SHA; `git cherry-pick -x` adds a trailer that proves its original source.
 
 ## Safety
 
-- Do not reintroduce a CE push workflow that updates EE or creates EE PRs.
+- Keep `submodule_update.yml` limited to CE `main` and `release/*` pushes and
+  its fixed bot-owned EE branch convention.
 - Keep CE release branches independent from `main`; a CE fix must not become an
   ancestor of a release branch before the dependency test.
 - Use `git commit -m '...'` only. Never rely on Vim or another interactive
